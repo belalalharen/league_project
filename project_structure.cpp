@@ -109,7 +109,7 @@ User users[MAX_USERS] = {
     {2, "User1", "password1", false},    // Regular user
     {3, "User2", "password2", false}     // Regular user
 };
-
+// Main function - 
 
 int main() {
 
@@ -119,6 +119,7 @@ int main() {
 
 // function definitions  
 void viewSchedule(int leagueID) {
+    // Validate league ID
     if (leagueID < 1 || leagueID > MAX_LEAGUES) {
         cout << "Invalid league ID." << endl;
         return;
@@ -304,6 +305,7 @@ void insertMatchResults(int leagueID) {
 }
 
 void viewMatchDetails(int leagueID) {
+    
     if (leagueID < 1 || leagueID > MAX_LEAGUES) {
         cout << "Invalid league ID." << endl;
         return;
@@ -394,61 +396,474 @@ void viewDate(time_t date) {
     cout << timeStruct.tm_sec << endl;
 
 }
-// this functoin is used to view the details of a match, including the teams, goals, date, and status (played or not played). It prompts the user to enter a match ID and displays the relevant information for that match. The function also handles invalid match IDs and allows the user to exit by entering 0.
-void viewMatchDetails(int leagueID) {
-    if (leagueID < 1 || leagueID > MAX_LEAGUES) {
-        cout << "Invalid league ID." << endl;
+// Function to handle user login
+void LogIn() {
+    int userID = 0;
+    string username, password;
+    bool isValid = false;
+
+    cout << "=======Log In=======" << endl << endl;
+    cout << "Enter your username: ";
+    cin >> username;
+    cout << "Enter your password: ";
+    cin >> password;
+    cout << endl;
+
+    for (int i = 0; i < MAX_USERS; i++) {
+        if (users[i].ID != 0 && users[i].Name == username && users[i].Password == password) {
+            isValid = true;
+            userID = users[i].ID;
+            break;
+        }
+    }
+
+    if (isValid) {
+        cout << "=======Pro Leagues=======" << endl << endl;
+        userAccess(userID);
+    }
+    else {
+        cout << "Invalid username or password" << endl;
+    }
+}
+// Function to determine user access level and direct to appropriate page
+void userAccess(int userID) {
+    if (userID <= 0 || userID > MAX_USERS) {
+        cout << "Invalid user ID" << endl;
         return;
     }
 
-    int matchID;
-    viewSchedule(leagueID);
+    if (users[userID - 1].isAdmin) {
+        cout << "=======Admin Page=======" << endl << endl;
+        cout << "You are logged in as " << users[userID - 1].Name << endl;
+        adminPage();
+    }
+    else {
+        cout << "=======User Page=======" << endl << endl;
+        cout << "You are logged in as " << users[userID - 1].Name << endl;
+        userPage();
+    }
+}
+// Function to get teamID from a list of teams in a league and return the teamID
+int getTeamID(int leagueID) {
+    if (leagueID < 1 || leagueID > MAX_LEAGUES) {
+        cout << "Invalid league ID." << endl;
+        return -1;
+    }
 
-    do {
-        cout << "=======Match Details=======" << endl << endl;
+    cout << "=======Teams in League=======" << endl << endl;
+    bool teamsExist = false;
 
-
-
-        cout << "Enter Match ID(0 for exiting): "; cin >> matchID;
-
-        if (matchID > MAX_MATCHES) {
-            cout << "Invalid match ID." << endl;
-            continue;
-
+    for (int i = 0; i < MAX_TEAMS; i++) {
+        if (leagues[leagueID - 1].Teams[i].ID != 0) {
+            cout << leagues[leagueID - 1].Teams[i].ID << "-" << leagues[leagueID - 1].Teams[i].Name << endl;
+            teamsExist = true;
         }
-        else if (matchID == 0) {
+    }
 
+    if (!teamsExist) {
+        cout << "No teams available in this league." << endl;
+        return -1;
+    }
 
-            cout << "Exiting..." << endl;
+    cout << "\nEnter Team Number: ";
+    int teamID;
+    cin >> teamID;
+
+    if (teamID < 1 || teamID > MAX_TEAMS || leagues[leagueID - 1].Teams[teamID - 1].ID == 0) {
+        cout << "Invalid team ID or team doesn't exist." << endl;
+        return -1;
+    }
+
+    return teamID;
+}
+
+void SignUp() {
+    for (int i = 0; i < MAX_USERS; i++) {
+        if (users[i].ID == 0) {
+            cout << "=======Sign Up=======" << endl << endl;
+            cout << "Enter your username: ";
+            cin >> users[i].Name;
+
+            // Check if username already exists
+            bool nameExists = false;
+            for (int j = 0; j < MAX_USERS; j++) {
+                if (j != i && users[j].ID != 0 && users[j].Name == users[i].Name) {
+                    nameExists = true;
+                    break;
+                }
+            }
+
+            if (nameExists) {
+                cout << "Username already exists. Please try another one." << endl;
+                return;
+            }
+
+            cout << "Enter your password: ";
+            cin >> users[i].Password;
+            cout << endl;
+
+            users[i].ID = i + 1;
+            users[i].isAdmin = false;  // Default to regular user
+
+            cout << "Sign up successful! You can now log in." << endl;
+            return;
+        }
+    }
+
+    cout << "Cannot register more users. Maximum limit reached." << endl;
+}
+
+bool LogOut() {
+    cout << "You are logged out." << endl;
+    return true;
+}
+
+// User page function to display league options and allow users to view details based on their selection
+void userPage() {
+    cout << "=======Leagues List=======" << endl << endl;
+    cout << "1-LaLiga" << endl;
+    cout << "2-Premier League" << endl;
+    cout << "Choose a league: ";
+    int leagueID;
+    cin >> leagueID;
+    cout << endl;
+
+    if (leagueID < 1 || leagueID > MAX_LEAGUES) {
+        cout << "Invalid league selection." << endl;
+        return;
+    }
+
+    if (leagueID == 1) {
+        cout << "=======LaLiga=======" << endl << endl;
+    }
+    else if (leagueID == 2) {
+        cout << "=======Premier League=======" << endl << endl;
+    }
+
+    bool logout = false;
+    while (!logout) {
+        cout << "1-View Player Details" << endl;
+        cout << "2-View Team Details" << endl;
+        cout << "3-View Match Details & Results" << endl;
+        cout << "4-View Table" << endl;
+        cout << "5-View Schedule" << endl;
+        cout << "0-Log-Out" << endl << endl;
+
+        cout << "Choose an option: ";
+        int option;
+        cin >> option;
+        cout << endl;
+
+        switch (option) {
+        case 1: {
+            int playerID, teamID, choice;
+            do {
+                cout << "1-View Player Details By Search" << endl;
+                cout << "2-View Player Details By Navigation" << endl;
+                cout << "Choice: ";
+                cin >> choice;
+
+                switch (choice) {
+                case 1:
+                    cout << "=======Player Details=======" << endl;
+                    cout << "Enter Team ID: ";
+                    cin >> teamID;
+
+                    if (teamID < 1 || teamID > MAX_TEAMS || leagues[leagueID - 1].Teams[teamID - 1].ID == 0) {
+                        cout << "Invalid team ID or team doesn't exist." << endl;
+                        break;
+                    }
+
+                    cout << "Enter Player ID: ";
+                    cin >> playerID;
+
+                    if (playerID < 1 || playerID > MAX_PLAYERS || leagues[leagueID - 1].Teams[teamID - 1].Players[playerID - 1].ID == 0) {
+                        cout << "Invalid player ID or player doesn't exist." << endl;
+                        break;
+                    }
+
+                    viewPlayerDetails(leagueID, teamID, playerID);
+                    break;
+
+                case 2:
+                    viewPlayerDetails(leagueID);
+                    break;
+
+                default:
+                    cout << "Invalid choice. Please select 1 or 2." << endl;
+                }
+            } while (choice != 1 && choice != 2);
             break;
         }
 
-        //make for loop to determine round
+        case 2: {
+            int teamID, choice;
+            do {
+                cout << "1-View Team Details By Search" << endl;
+                cout << "2-View Team Details By Navigation" << endl;
+                cout << "Choice: ";
+                cin >> choice;
 
+                switch (choice) {
+                case 1:
+                    cout << "=======Team Details=======" << endl;
+                    cout << "Enter Team ID: ";
+                    cin >> teamID;
 
-        int matchRound = (matchID - 1) / (MAX_TEAMS / 2) + 1;
-        int homeTeamGoals = leagues[leagueID - 1].Matches[matchID - 1].result.TeamHomeGoals;
-        int awayTeamGoals = leagues[leagueID - 1].Matches[matchID - 1].result.TeamAwayGoals;
+                    if (teamID < 1 || teamID > MAX_TEAMS || leagues[leagueID - 1].Teams[teamID - 1].ID == 0) {
+                        cout << "Invalid team ID or team doesn't exist." << endl;
+                        break;
+                    }
 
-        cout << "Match ID: " << leagues[leagueID - 1].Matches[matchID - 1].ID;
-        cout << " | Match Round: " << matchRound << endl;
+                    viewTeamDetails(leagueID, teamID);
+                    break;
 
-        if (leagues[leagueID - 1].Matches[matchID - 1].result.ID != 0) {
-            cout << "(Home)" << leagues[leagueID - 1].Matches[matchID - 1].TeamHome.Name << " ["
-                << leagues[leagueID - 1].Matches[matchID - 1].result.TeamHomeGoals << "] vs "
-                << "(Away) " << leagues[leagueID - 1].Matches[matchID - 1].TeamAway.Name << " ["
-                << leagues[leagueID - 1].Matches[matchID - 1].result.TeamAwayGoals << "]" << endl;
-            cout << "Match Date: ";
-            viewDate(leagues[leagueID - 1].Matches[matchID - 1].StartDate);
-            cout << "Status: Played" << endl;
+                case 2:
+                    viewTeamDetails(leagueID);
+                    break;
+
+                default:
+                    cout << "Invalid choice. Please select 1 or 2." << endl;
+                }
+            } while (choice != 1 && choice != 2);
+            break;
         }
-        else {
-            cout << leagues[leagueID - 1].Matches[matchID - 1].TeamHome.Name << " vs "
-                << leagues[leagueID - 1].Matches[matchID - 1].TeamAway.Name << endl;
-            cout << "Match Date: ";
-            viewDate(leagues[leagueID - 1].Matches[matchID - 1].StartDate);
-            cout << "Status: Not Played" << endl;
+
+        case 3:
+            cout << "=======Match Details=======" << endl << endl;
+            cout << "This feature is not yet implemented." << endl;
+            break;
+
+        case 4:
+            cout << "=======League Table=======" << endl << endl;
+            cout << "This feature is not yet implemented." << endl;
+            break;
+
+        case 5:
+            cout << "=======League Schedule=======" << endl << endl;
+            viewSchedule(leagueID);
+            break;
+
+        case 0:
+            logout = LogOut();
+            break;
+
+        default:
+            cout << "Invalid option. Please try again." << endl;
+        }
+    }
+}
+// Admin page function to display league options and allow admins to perform various functions based on their selection
+void adminPage() {
+    cout << "1-LaLiga" << endl;
+    cout << "2-Premier League" << endl;
+    cout << "Choose a league: ";
+    int leagueID;
+    cin >> leagueID;
+
+    if (leagueID < 1 || leagueID > MAX_LEAGUES) {
+        cout << "Invalid league selection." << endl;
+        return;
+    }
+
+    cout << endl;
+    if (leagueID == 1) {
+        cout << "=======LaLiga=======" << endl << endl;
+    }
+    else if (leagueID == 2) {
+        cout << "=======Premier League=======" << endl << endl;
+    }
+
+    bool logout = false;
+    while (!logout) {
+        cout << "=======Admin Page=======" << endl << endl;
+        cout << "=== Admin Functions ===" << endl;
+        cout << "1-Add Team" << endl;
+        cout << "2-Add Player" << endl;
+        cout << "3-Generate Match Schedule" << endl;
+        cout << "4-Add Match Results" << endl;
+        cout << "5-View Player Details" << endl;
+        cout << "6-View Team Details" << endl;
+        cout << "7-View Match Details & Results" << endl;
+        cout << "8-View Table" << endl;
+        cout << "9-View Schedule" << endl;
+        cout << "0-Log-Out" << endl;
+        cout << "=================" << endl;
+        cout << "Choose an option: ";
+        int option;
+        cin >> option;
+        cout << endl;
+
+        switch (option) {
+        case 1:
+            cout << "=======Add Team=======" << endl << endl;
+            if (leagues[leagueID - 1].leaguestarted) {
+                cout << "League already started. Cannot add teams." << endl;
+                break;
+            }
+            addTeam(leagueID);
+            break;
+
+        case 2: {
+            int teamID;
+            cout << "=======Add Player=======" << endl << endl;
+            if (leagues[leagueID - 1].leaguestarted) {
+                cout << "League already started. Cannot add players." << endl;
+                break;
+            }
+
+            cout << leagues[leagueID - 1].Name << " :";
+            bool teamsExist = false;
+            // Display teams in the league
+            for (int i = 0; i < MAX_TEAMS; i++) {
+                if (leagues[leagueID - 1].Teams[i].ID != 0) {
+                    cout << endl << leagues[leagueID - 1].Teams[i].ID << "-" << leagues[leagueID - 1].Teams[i].Name << endl;
+                    teamsExist = true;
+                }
+            }
+            // Check if there are any teams in the league
+            if (!teamsExist) {
+                cout << " is empty. Please add a team first." << endl;
+                break;
+            }
+
+            do {
+                cout << "Enter Choice: ";
+                cin >> teamID;
+
+                if (teamID < 1 || teamID > MAX_TEAMS || leagues[leagueID - 1].Teams[teamID - 1].ID == 0) {
+                    cout << "Invalid choice or team doesn't exist." << endl;
+                }
+                else {
+                    break;
+                }
+
+            } while (true);
+
+            addPlayer(leagueID, teamID);
+            break;
         }
 
-    } while (matchID != 0);
+        case 3:
+            cout << "=======Generate Match Schedule=======" << endl << endl;
+            if (leagues[leagueID - 1].leaguestarted) {
+                cout << "League already started. Cannot generate schedule." << endl;
+                break;
+            }
+            generateMatchSchedule(leagueID);
+
+            break;
+
+        case 4:
+            cout << "=======Add Match Results=======" << endl << endl;
+            insertMatchResults(leagueID);
+            break;
+
+            // User functions (copied from userPage with minor adaptations)
+        case 5: {
+            int playerID, teamID, choice;
+            do {
+                cout << "1-View Player Details By Search" << endl;
+                cout << "2-View Player Details By Navigation" << endl;
+                cout << "Choice: ";
+                cin >> choice;
+
+                switch (choice) {
+                case 1:
+                    cout << "=======Player Details=======" << endl;
+                    cout << "Enter Team ID: ";
+                    cin >> teamID;
+
+                    if (teamID < 1 || teamID > MAX_TEAMS || leagues[leagueID - 1].Teams[teamID - 1].ID == 0) {
+                        cout << "Invalid team ID or team doesn't exist." << endl;
+                        break;
+                    }
+
+                    cout << "Enter Player ID: ";
+                    cin >> playerID;
+
+                    if (playerID < 1 || playerID > MAX_PLAYERS || leagues[leagueID - 1].Teams[teamID - 1].Players[playerID - 1].ID == 0) {
+                        cout << "Invalid player ID or player doesn't exist." << endl;
+                        break;
+                    }
+
+                    viewPlayerDetails(leagueID, teamID, playerID);
+                    break;
+
+                case 2:
+                    viewPlayerDetails(leagueID);
+                    break;
+
+                default:
+                    cout << "Invalid choice. Please select 1 or 2." << endl;
+                }
+            } while (choice != 1 && choice != 2);
+            break;
+        }
+
+        case 6: {
+            int teamID, choice;
+            do {
+                cout << "1-View Team Details By Search" << endl;
+                cout << "2-View Team Details By Navigation" << endl;
+                cout << "Choice: ";
+                cin >> choice;
+
+                switch (choice) {
+                case 1:
+                    cout << "=======Team Details=======" << endl;
+                    cout << "Enter Team ID: ";
+                    cin >> teamID;
+
+                    if (teamID < 1 || teamID > MAX_TEAMS || leagues[leagueID - 1].Teams[teamID - 1].ID == 0) {
+                        cout << "Invalid team ID or team doesn't exist." << endl;
+                        break;
+                    }
+
+                    viewTeamDetails(leagueID, teamID);
+                    break;
+
+                case 2:
+                    viewTeamDetails(leagueID);
+                    break;
+
+                default:
+                    cout << "Invalid choice. Please select 1 or 2." << endl;
+                }
+            } while (choice != 1 && choice != 2);
+            break;
+        }
+
+        case 7:
+            cout << "=======Match Details=======" << endl << endl;
+            viewMatchDetails(leagueID);
+
+            break;
+
+        case 8:
+            cout << "=======League Table=======" << endl << endl;
+
+            if (leagues[leagueID - 1].leaguestarted) {
+                viewTable(leagueID);
+                break;
+            }
+            cout << "League has not started yet. Cannot view table." << endl;
+
+            break;
+
+        case 9:
+            cout << "=======League Schedule=======" << endl << endl;
+            viewSchedule(leagueID);
+            break;
+
+        case 0:
+            logout = LogOut();
+            break;
+
+        default:
+            cout << "Invalid option. Please try again." << endl;
+        }
+    }
+}
+
 
