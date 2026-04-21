@@ -1,0 +1,241 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+// Constants
+const int MAX_PLAYERS = 5;
+const int MAX_TEAMS = 20;
+
+// Structures
+
+struct Player
+{
+    int ID;
+    string Name;
+    string Position;
+    int Goals;
+};
+
+struct Team
+{
+    int ID;
+    string Name;
+    Player Players[MAX_PLAYERS];
+};
+
+// Sample Data
+
+Team teams[MAX_TEAMS] =
+{
+    {
+        1, "Eagles FC",
+        {
+            {1, "Ahmed Ali", "Forward", 10},
+            {2, "Omar Hassan", "Midfielder", 5}
+        }
+    },
+
+    {
+        2, "Tigers FC",
+        {
+            {1, "Mohamed Salah", "Forward", 15},
+            {2, "Ali Mahmoud", "Defender", 2}
+        }
+    },
+
+    {
+        3, "Lions FC",
+        {
+            {1, "Youssef Ahmed", "Goalkeeper", 0}
+        }
+    }
+
+    
+};
+
+
+// Display player details based on League only
+
+void viewPlayerDetails(int leagueID)
+{
+    cout << "======= Teams =======" << endl;
+
+    for (int i = 0; i < MAX_TEAMS; i++)
+    {
+        if (teams[i].ID != 0)
+        {
+            cout << teams[i].ID
+                 << "- "
+                 << teams[i].Name << endl;
+        }
+    }
+
+    int teamID;
+
+    cout << "Enter Team ID: ";
+    cin >> teamID;
+
+    if (teamID < 1 || teamID > MAX_TEAMS)
+    {
+        cout << "Invalid Team ID" << endl;
+        return;
+    }
+
+    cout << "\n======= Players =======" << endl;
+
+    for (int i = 0; i < MAX_PLAYERS; i++)
+    {
+        if (teams[teamID - 1].Players[i].ID != 0)
+        {
+            cout << teams[teamID - 1].Players[i].ID
+                 << "- "
+                 << teams[teamID - 1].Players[i].Name
+                 << endl;
+        }
+    }
+
+    int playerID;
+
+    cout << "Enter Player ID: ";
+    cin >> playerID;
+
+    if (playerID < 1 || playerID > MAX_PLAYERS)
+    {
+        cout << "Invalid Player ID" << endl;
+        return;
+    }
+
+    viewPlayerDetails(leagueID, teamID, playerID);
+}
+
+
+// Display specific player
+
+void viewPlayerDetails(int leagueID,
+                       int teamID,
+                       int playerID)
+{
+    Player p =
+        teams[teamID - 1]
+        .Players[playerID - 1];
+
+    if (p.ID == 0)
+    {
+        cout << "Player does not exist" << endl;
+        return;
+    }
+
+    cout << "\n======= Player Details =======" << endl;
+
+    cout << "Player ID: "
+         << p.ID << endl;
+
+    cout << "Player Name: "
+         << p.Name << endl;
+
+    cout << "Position: "
+         << p.Position << endl;
+
+    cout << "Goals: "
+         << p.Goals << endl;
+}
+
+
+// Display team details based on League and Team
+
+void viewTeamDetails(int leagueID,
+                     int teamID)
+{
+    if (teamID < 1 || teamID > MAX_TEAMS)
+    {
+        cout << "Invalid Team ID" << endl;
+        return;
+    }
+
+    Team t = teams[teamID - 1];
+
+    if (t.ID == 0)
+    {
+        cout << "Team does not exist" << endl;
+        return;
+    }
+
+    cout << "\n======= Team Details =======" << endl;
+
+    cout << "Team ID: "
+         << t.ID << endl;
+
+    cout << "Team Name: "
+         << t.Name << endl;
+
+    cout << "\nPlayers:\n";
+
+    for (int i = 0; i < MAX_PLAYERS; i++)
+    {
+        if (t.Players[i].ID != 0)
+        {
+            cout << t.Players[i].ID
+                 << "- "
+                 << t.Players[i].Name
+                 << endl;
+        }
+    }
+}
+
+
+// Display all teams inside a League
+
+void viewTeamDetails(int leagueID)
+{
+    cout << "======= Teams List =======" << endl;
+
+    for (int i = 0; i < MAX_TEAMS; i++)
+    {
+        if (teams[i].ID != 0)
+        {
+            cout << teams[i].ID
+                 << "- "
+                 << teams[i].Name
+                 << endl;
+        }
+    }
+
+    int teamID;
+
+    cout << "\nEnter Team ID: ";
+    cin >> teamID;
+
+    viewTeamDetails(leagueID, teamID);
+}
+
+
+// Main function
+
+int main()
+{
+    int choice;
+
+    cout << "======= Menu =======" << endl;
+
+    cout << "1- View Player Details" << endl;
+    cout << "2- View Team Details" << endl;
+
+    cout << "Choose option: ";
+    cin >> choice;
+
+    switch (choice)
+    {
+        case 1:
+            viewPlayerDetails(1);
+            break;
+
+        case 2:
+            viewTeamDetails(1);
+            break;
+
+        default:
+            cout << "Invalid choice";
+    }
+
+    return 0;
+}
